@@ -160,11 +160,11 @@ def analyse_resume(resume_text: str, job_description: str = "") -> str:
         user_message += f"\n\n### JOB DESCRIPTION\n\n{job_description}"
 
     # --- Call the Groq API --------------------------------------------------
-    # Using the llama3-8b-8192 model as specified in requirements
+    # Using the llama-3.1-8b-instant model (successor to llama3-8b-8192)
     client = Groq(api_key=api_key)
 
     chat_completion = client.chat.completions.create(
-        model="llama3-8b-8192",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_message},
