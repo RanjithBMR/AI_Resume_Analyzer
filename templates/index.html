@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AI-powered resume analyzer — get actionable feedback on your resume with ATS optimization tips, skill-gap analysis, and job-match scoring." />
+    <title>AI Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ====== Header ====== -->
+    <header class="header">
+        <div class="header__icon">📄</div>
+        <h1 class="header__title">AI Resume Analyzer</h1>
+        <p class="header__subtitle">Upload your resume &amp; get instant AI-powered feedback</p>
+    </header>
+
+    <!-- ====== Error Alert (rendered server-side when an error occurs) ====== -->
+    {% if error %}
+    <div class="error-alert" role="alert">
+        <span class="error-alert__icon">⚠️</span>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <!-- ====== Results Section (rendered server-side after analysis) ====== -->
+    {% if analysis %}
+    <div class="results">
+        <h2 class="results__heading">✨ Analysis Results</h2>
+
+        {% for section in sections %}
+        <div class="result-card">
+            <div class="result-card__title">{{ section.icon }} {{ section.title }}</div>
+            <div class="result-card__body">{{ section.body }}</div>
+        </div>
+        {% endfor %}
+
+        <a href="/" class="btn-secondary">🔄 Analyse Another Resume</a>
+    </div>
+
+    {% else %}
+
+    <!-- ====== Upload Form ====== -->
+    <div class="card" id="upload-card">
+        <form
+            class="upload-form"
+            id="analyse-form"
+            action="/analyse"
+            method="POST"
+            enctype="multipart/form-data"
+        >
+            <!-- PDF file input styled as a drop zone -->
+            <div class="file-zone" id="file-zone">
+                <div class="file-zone__icon">📎</div>
+                <div class="file-zone__label">Choose a PDF resume</div>
+                <div class="file-zone__hint">or drag &amp; drop here &bull; PDF only, max 16 MB</div>
+                <input
+                    type="file"
+                    name="resume"
+                    id="resume-input"
+                    accept=".pdf,application/pdf"
+                    required
+                />
+                <div class="file-zone__name" id="file-name"></div>
+            </div>
+
+            <!-- Optional job description -->
+            <div class="form-group">
+                <label for="job-desc">
+                    Job Description <span>(optional — improves match analysis)</span>
+                </label>
+                <textarea
+                    id="job-desc"
+                    name="job_description"
+                    placeholder="Paste the target job description here…"
+                ></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary" id="submit-btn">
+                🔍 <span>Analyse Resume</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- ====== Loading Spinner (shown via JS on submit) ====== -->
+    <div class="card loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p>Analysing your resume — this may take a moment…</p>
+    </div>
+
+    {% endif %}
+
+    <footer class="footer">
+        Powered by Groq &amp; LLaMA 3 &mdash; Built with Flask
+    </footer>
+</div>
+
+<!-- ====== Client-Side JS ====== -->
+<script>
+(function () {
+    // --- File-name preview ---------------------------------------------------
+    const fileInput  = document.getElementById('resume-input');
+    const fileNameEl = document.getElementById('file-name');
+    const fileZone   = document.getElementById('file-zone');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function () {
+            if (this.files && this.files.length) {
+                fileNameEl.textContent = '📄 ' + this.files[0].name;
+                fileZone.style.borderColor = 'var(--success)';
+            }
+        });
+    }
+
+    // --- Show spinner on form submit -----------------------------------------
+    const form       = document.getElementById('analyse-form');
+    const uploadCard = document.getElementById('upload-card');
+    const loading    = document.getElementById('loading');
+
+    if (form) {
+        form.addEventListener('submit', function () {
+            // Basic client-side guard: ensure a file was selected
+            if (!fileInput.files || !fileInput.files.length) return;
+
+            // Hide the form card, show the loading overlay
+            uploadCard.style.display = 'none';
+            loading.classList.add('active');
+        });
+    }
+
+    // --- Drag-and-drop visual feedback ---------------------------------------
+    if (fileZone) {
+        ['dragenter', 'dragover'].forEach(evt =>
+            fileZone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--accent)';
+                this.style.background  = 'rgba(108,99,255,0.08)';
+            })
+        );
+        ['dragleave', 'drop'].forEach(evt =>
+            fileZone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                this.style.borderColor = '';
+                this.style.background  = '';
+            })
+        );
+    }
+})();
+</script>
+
+</body>
+</html>
